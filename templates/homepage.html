@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>login button</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+      integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="{{url_for('static',filename='/login.css')}}" />
+    <style>
+         </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-dark">
+      <a class="navbar-brand " href="#"><img src="https://thumbs.dreamstime.com/b/education-logo-library-vector-university-223144385.jpg" width=200px" height="100px" alt="library logo"></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <a class="nav-link"><form class="form-inline" method="POST" action="{{url_for('usersearch')}}">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search Book Id" aria-label="Search" name="ids">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form></a>
+          <li class="nav-item active">
+            <a class="nav-link" href="{{url_for('view1')}}"><button type="button" class="btn btn-info">All books info</button><br/></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{url_for('suggestions')}}""><button type="button" class="btn btn-info">Book Suggestions</button></a><br />
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href=""><button type="button" class="btn btn-danger">Pay fine</button><br /><br/></a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- banner -->
+    <!-- <div style=" background-image:url('https://www.vancopayments.com/hubfs/Stock%20images/Open%20book%20with%20golden%20glow%20flying%20paper%20pages%20on%20wooden%20deck.jpeg'); width: 100vw; height: 100vh; background-size: cover;
+    background-repeat: no-repeat; padding: auto;text-align: center;">
+       <div class="top-left ">
+        <h1 style="padding:2%; color:white;">LIBRARY</h1>
+        <h3 style="padding:0%; color:white;">Library is an open research hub</h3>
+
+       </div> -->
+      
+       <div style=" padding: 40px; background-repeat: no-repeat; width: 100vw; height: 90vh; background-size: cover; background-image: url('https://img.freepik.com/free-vector/flat-design-autumnal-background-with-book-glasses_52683-43404.jpg?w=740&t=st=1673242374~exp=1673242974~hmac=91917d745ced4a3de930bdbae54744b8cb26047173c8fe9b8fb588a9640c0934')">
+    <div class="sect1">
+        <div class="firstbg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 col-md-7">
+                        <!-- <h1 class="firsthead">Introduction to Book</h1> -->
+                        <p class="firstpara">As an intellectual object, a book is prototypically a composition of such great length that it takes a considerable investment of time to compose and still considered as an investment of time to read. In a restricted sense, a book is a self-sufficient section or part of a longer composition, a usage reflecting that, in antiquity,As an intellectual object.</p>
+                        
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <iframe width="500px" height="300px" src="https://www.youtube.com/embed/uVMJB3xOeZA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="padding-top:1px; padding-left:450px">
+      <button type="button" class="btn btn-danger">Signup</button><br />
+    </div>
+  </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+      integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+      crossorigin="anonymous"></script>
+  </body>
+</html>

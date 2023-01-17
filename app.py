@@ -6,6 +6,7 @@ from threading import Thread
 from secretconfig import secret_key
 from py_mail import mail_sender
 import smtplib
+import stripe
 from email.message import EmailMessage
 stripe.api_key="sk_test_51MODSfSBMjKWaMuTEbWZozR1ryDwzFKteVS6PVBalMfHWhgIdNjOLmnhpxdqb1KqHE3LO7p6HlqoQgMB4jjtFxgv00MxIG1jHn"
 app=Flask(__name__)
@@ -18,12 +19,12 @@ def background_task():
     with app.app_context():
         while True:
             cursor=mysql.connection.cursor()
-            cursor.execute('SELECT rent_id,due_date from rent')
+            cursor.execute("select rent_id,due_date from rent")
             data=cursor.fetchall()
-            if len(data)==0:
-                pass
-            else:
+            cursor.close()
+            if len(data)!=0:
                 for i in data:
+                    cursor=mysql.connection.cursor()
                     today=date.today()
                     current_date=datetime.strptime(f'{str(today.day)}-{str(today.month)}-{str(today.year)}','%d-%m-%Y')
                     due_date=i[1]
@@ -32,11 +33,14 @@ def background_task():
                     if diff>0:
                         per_day=100
                         fine=diff*per_day
-                        cursor.execute('UPDATE rent set fine=%s where rent_id=%s',[fine,i[0]])
+                        cursor.execute('update rent set fine=%s where rent_id=%s',[fine,i[0]])
                         mysql.connection.commit()
+                        cursor.close()
+                
 @app.route('/')
 def home():
-    return render_template('homepage.html')      
+    return render_template('homepage.html')
+          
             
 @app.route('/adminlogin')
 def login():
@@ -97,15 +101,16 @@ def delete():
         mysql.connection.commit()
         cursor.close()
         return redirect(url_for('adminlogin'))
+    
 @app.route('/clearsuggestions')
 def clear():
     cursor=mysql.connection.cursor()
     cursor.execute('delete from suggestions')
     mysql.connection.commit()
-    cursor.close()
     return redirect(url_for('adminlogin'))
-@app.route('/addbook',methods=['GET','POST'])
+    cursor.close()
     
+@app.route('/addbook',methods=['GET','POST'])
 def addbook():
     if request.method=='POST':
         id1=request.form['id']
@@ -127,6 +132,14 @@ def view():
     books=cursor.fetchall()
     cursor.close()
     return render_template('table.html',books=books)
+
+@app.route('/rentalstatus')
+def status_rent():
+    cursor=mysql.connection.cursor()
+    cursor.execute('SELECT rent.rent_id,rent.student_id,rent.section,rent.book_id,rent.book_name,rent.from_date,rent.due_date,rent.fine from rent')
+    rids=cursor.fetchall()
+    return render_template('rentalstats.html',rids=rids)
+
 @app.route('/viewsuggestions')
 def viewsuggestions():
     cursor=mysql.connection.cursor()
@@ -141,6 +154,24 @@ def view1():
     books=cursor.fetchall()
     cursor.close()
     return render_template('table1.html',books=books)
+
+@app.route('/rent_search',methods=['POST'])
+def search_rentbar():
+    if request.method=='POST':
+        data=request.form['ids']
+        cursor=mysql.connection.cursor()
+        cursor.execute('select count(*) from rent where rent_id=%s',[data])
+        count=int(cursor.fetchone()[0])
+        cursor.close()
+        if count==0:
+            return render_template('rentalstats2.html',data='empty')
+        else:
+            cursor=mysql.connection.cursor()
+            cursor.execute('select * from rent where rent_id=%s',[data])
+            count=cursor.fetchall()
+            cursor.close()
+            return render_template('rentalstats2.html',data=count)
+        
 @app.route('/booksearch',methods=['POST'])
 def booksearch():
     if request.method=='POST':
@@ -199,7 +230,6 @@ def suggestions():
         cursor=mysql.connection.cursor()
         cursor.execute('INSERT INTO suggestions values(%s,%s,%s)',[student_id,section,suggestion])
         mysql.connection.commit()
-        cursor.close()
         return redirect(url_for('home'))
     return render_template('review.html')
 @app.route('/update',methods=['POST'])
@@ -285,13 +315,6 @@ def rental():
                 return render_template('check.html')
             return redirect(url_for('adminlogin'))
     return render_template('updaterent.html',books=books)
-@app.route('/rentalstatus',methods=['GET','POST'])
-def rentalstatus():
-    cursor=mysql.connection.cursor()
-    cursor.execute('SELECT * from rent')
-    rental=cursor.fetchall()
-    cursor.close()
-    return render_template('rentalstatus.html',rental=rental)
 @app.route('/choose',methods=['POST'])
 def choose():
     choice=request.form['option']
@@ -394,9 +417,79 @@ def retrievefromreplace():
         mysql.connection.commit()
         return redirect(url_for('adminlogin'))
     return render_template('fromreplacement.html',books=books)
-@app.route('/payment',method=['GE'])
+@app.route('/payments',methods=['GET','POST'])
+def payments():
+    cursor=mysql.connection.cursor()
+    cursor.execute('SELECT * from rent where fine>0')
+    rentids1=cursor.fetchall()
+    rentids=0 if len(rentids1)==0 else rentids1
+    return render_template('payment.html',rentids=rentids)
+@app.route('/pay/<rentid>/<studid>/<fine>',methods=['GET','POST'])
+def pay(rentid,studid,fine):
+    checkout_session=stripe.checkout.Session.create(
+        success_url='http://127.0.0.1:5000'+url_for('success_pay',rentid=rentid,fine=fine),
+        line_items=[
+            {
+                'price_data': {
+                    'product_data': {
+                        'name': f'payment of rent id:{rentid}',
+                    },
+                    'unit_amount': int(fine)*100,
+                    'currency': 'inr',
+                },
+                'quantity': 1,
+            },
+            ],
+        mode="payment",)
+    return redirect(checkout_session.url)
+@app.route('/success/<rentid>/<fine>')
+def success_pay(rentid,fine):
+    cursor=mysql.connection.cursor()
+    cursor.execute('SELECT rent_id from rent')
+    data=cursor.fetchall()
+    cursor.execute('select email from rent where rent_id=%s',[rentid])
+    email=cursor.fetchone()[0]
+    cursor.execute('select student_id from rent where rent_id=%s',[rentid])
+    studid=cursor.fetchone()[0]
+    cursor.execute('select book_name from rent where rent_id=%s',[rentid])
+    book_name=cursor.fetchone()[0]
+    cursor.execute('SELECT email,passcode from admin')
+    details=cursor.fetchall()[0]
+    email_from=details[0]
+    passcode=details[1]
+    cursor.execute('select book_id from rent where rent_id=%s',[rentid])
+    book_id=cursor.fetchone()[0]
+    cursor.close()
+    print(data)
+    print(type(rentid))
+    if (int(rentid),) in data:
+        cursor=mysql.connection.cursor()
+        cursor.execute('delete from rent where rent_id=%s',[rentid])
+        mysql.connection.commit()
+        subject=f'Payment of rupees {fine} successfull for rent id:{rentid}'
+        body=f'You have successfully paid the book rental fine of rupees {fine} for {book_name}\n\nHappy Reading!'
+        try:
+            mail_sender(email_from,email,subject,body,passcode)
+        except Exception as e:
+            print(e)
+            return render_template('check3.html')
+        cursor.execute('SELECT STATUS from library where book_id=%s',[book_id])
+        status=cursor.fetchall()[0]
+        score=status[0].split()[0]
+        new_status=int(score)+1
+        fresh_status=f'{new_status} Available'
+        cursor.execute('SELECT rented from library where book_id=%s',[book_id])
+        rented=int(cursor.fetchone()[0])
+        new_rent=rented-1
+        cursor.execute('update library set status=%s,rented=%s where book_id=%s',[fresh_status,new_rent,book_id])
+        mysql.connection.commit()
+        flash('Payment successfull')
+        return redirect(url_for('home'))
+    else:
+        abort(404,description="Page not found")
+
 if __name__ == "__main__":
-    thread=Thread(target=background_task)
+    thread = Thread(target=background_task)
     thread.daemon=True
     thread.start()
     app.run(debug=True,use_reloader=True)

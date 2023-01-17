@@ -15,39 +15,38 @@
 </head>
 <body>
   <nav class="navbar navbar-light bg-light">
-    <form class="form-inline" method="POST" action="{{url_for('usersearch')}}">
-      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="ids">
+    <form class="form-inline" method="POST" action="{{url_for('search_rentbar')}}">
+      <input class="form-control mr-sm-2" type="search" placeholder="Enter rent Id" name="ids" aria-label="Search">
       <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
     </form>
-    <!-- <a href="{{url_for('rentalstatus')}}"><button class="btn btn-outline-success my-2 my-sm-0">clear</button></a> -->
-    <a href="{{url_for('home')}}"><button class="btn btn-outline-success my-2 my-sm-0">Prev</button></a>
+      <a href="{{url_for('status_rent')}}"><button class="btn btn-outline-success my-2 my-sm-0">clear</button></a>
+
+    <a href="{{url_for('adminlogin')}}"><button class="btn btn-outline-success my-2 my-sm-0">Prev</button></a>
   </nav>
   {% block content %}
     <div class="table text-center mt-4 ml-4">
     <table border="1px" cellpadding="20px" cellspacing="0px">
         <tr>
-                 <th> RENT_ID</th>
-                 <th> STUDENT_ID</th>
-                 <th>BOOK_ID</th>
-                  <th> BOOK_NAME</th>
-                  <th>SECTION</th>
-                 <th>EMAIL</th>
-                 <th>No of Copies</th>
-                 <th> FINE</th>
-                 <th>DUE_DATE</th>
+                 <th>Rent Id</th>
+                 <th>Student Id</th>
+                 <th>Section</th>
+                 <th>Book Id</th>
+                 <th>Title</th>
+                 <th>Date taken</th>
+                 <th>Due Date</th>
+                 <th>Fine</th>
+            
         </tr>
-        {% for i in rental %}
+        {% for i in rids %}
         <tr>
                 <td>{{i[0]}}</td>
                 <td>{{i[1]}}</td>
-                <td>{{i[4]}}</td>
                 <td>{{i[2]}}</td>
-                <td>{{i[7]}}</td>
                 <td>{{i[3]}}</td>
+                <td>{{i[4]}}</td>
+                <td>{{i[5]}}</td>
                 <td>{{i[6]}}</td>
-                <td>{{i[8]}}</td>
-                <
-               
+                <td>{{i[7]}}</td>
         </tr>
         {% endfor %}
     </table>
@@ -62,6 +61,6 @@
       integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
       crossorigin="anonymous"
     ></script>
-{% endblock %}
+  {% endblock %}
 </body>
 </html>
